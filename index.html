@@ -106,7 +106,6 @@
         <!-- Products List -->
         <section class="space-y-4 min-h-[200px]">
             <h3 class="font-bold text-lg text-gray-800 px-2 flex items-center gap-2"><i data-lucide="grid" class="w-5 h-5 text-teal-600"></i> <span id="displayProductsTitle">أحدث المعدات</span></h3>
-            <div id="loadingSpinner" class="hidden justify-center py-10"><div class="loader"></div></div>
             <div id="productsGrid" class="grid grid-cols-2 gap-3">
                 <!-- المنتجات تظهر هنا -->
             </div>
@@ -423,7 +422,6 @@
                             renderAdminProducts();
                         }, (e) => {
                             console.error("Firestore Products Error", e);
-                            isOnline = false; // فشل الاتصال بقاعدة البيانات، نكتفي بالمحلي
                         });
                     }
                 });
