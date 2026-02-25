@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العمدة لأدوات الصيد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #0d9488; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .deal-shine { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent); transform: skewX(-25deg); animation: shine 3s infinite; }
+        @keyframes shine { 100% { left: 200%; } }
+        .fade-in-up { animation: fadeInUp 0.5s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Toasts */
+        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #333; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; animation: fadeInOut 3s forwards; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-20px); } }
+        
+        /* Splash Screen Animations - Ocean Theme */
+        #splashScreen { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #0f766e, #0369a1, #0891b2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.6s ease-out, visibility 0.6s; overflow: hidden; }
+        .splash-text-ar { font-size: 2.2rem; font-weight: 900; animation: popIn 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; text-shadow: 0 4px 10px rgba(0,0,0,0.2); text-align: center; line-height: 1.2; }
+        .splash-text-en { font-size: 1.1rem; font-weight: 600; opacity: 0.9; margin-top: 0.8rem; animation: slideUp 1s 0.4s ease-out both; letter-spacing: 1px; text-align: center; }
+        .sparkles { position: absolute; width: 200%; height: 200%; pointer-events: none; background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 40px 40px; opacity: 0.15; animation: floatAnim 15s linear infinite; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.5) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes slideUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-24 md:pb-0 select-none">
+
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="sparkles"></div>
+        <div class="relative z-10 flex flex-col items-center px-4 -mt-10">
+            <div class="bg-white/20 p-4 rounded-3xl backdrop-blur-sm mb-4 animate-bounce" style="animation-duration: 2s;">
+                <i data-lucide="code-2" class="w-12 h-12 text-white"></i>
+            </div>
+            <h1 class="splash-text-ar">شركة بولا عماد للبرمجيات</h1>
+            <h2 class="splash-text-en">Bola Emad Software Company</h2>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-20 border-b border-teal-100">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div id="adminTrigger" class="flex items-center gap-2 cursor-pointer active:scale-95 transition select-none p-1" onclick="handleAdminTrigger()">
+                <div class="bg-teal-600 rounded-lg shadow-sm flex items-center justify-center overflow-hidden w-9 h-9 p-0.5">
+                    <img id="headerCustomLogo" src="" alt="Logo" class="w-full h-full object-cover hidden rounded-md bg-white">
+                    <i id="headerDefaultIcon" data-lucide="anchor" class="w-5 h-5 text-white"></i>
+                </div>
+                <h1 id="headerStoreName" class="font-bold text-lg text-teal-900 leading-tight">العمدة لأدوات الصيد</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleModal('contactModal')" class="flex items-center gap-1 bg-teal-50 text-teal-600 px-3 py-1.5 rounded-full text-xs font-bold border border-teal-100"><i data-lucide="phone-call" class="w-3 h-3"></i> تواصل</button>
+                <button onclick="toggleCart()" class="relative p-2 rounded-full bg-gray-100 text-teal-600 hover:bg-teal-50 transition"><i data-lucide="shopping-cart" class="w-6 h-6"></i><span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse">0</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-6">
+        <!-- Logo Section -->
+        <section class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 to-teal-600"></div>
+            <div class="relative mx-auto w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center overflow-hidden border-[6px] border-white shadow-lg ring-1 ring-gray-100">
+                <img id="mainLogo" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                <i id="defaultLogoIcon" data-lucide="fish" class="w-12 h-12 text-teal-300"></i>
+            </div>
+            <div>
+                <h2 id="heroStoreName" class="text-2xl font-bold text-gray-900">العمدة لأدوات الصيد</h2>
+                <p id="heroStoreDesc" class="text-sm text-gray-500 mt-1">وجهتك الأولى لاحتراف صيد الأسماك</p>
+            </div>
+        </section>
+
+        <!-- Deal Section -->
+        <section id="dealSection" class="hidden relative overflow-hidden bg-gradient-to-br from-yellow-500 to-orange-600 rounded-3xl shadow-lg text-white">
+            <div class="deal-shine"></div>
+            <div class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-bl-xl z-10 shadow-sm">🔥 عرض اليوم</div>
+            <div id="dealContent" class="p-6 pt-8 flex items-center gap-4">
+                <div class="flex-1">
+                    <h3 id="displayDealTitle" class="font-bold text-lg">خصم خاص</h3>
+                    <p id="displayDealDesc" class="text-sm opacity-90 mt-1">لفترة محدودة فقط</p>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl"><i data-lucide="percent" class="w-8 h-8"></i></div>
+            </div>
+        </section>
+
+        <!-- Search & Categories Section -->
+        <section class="space-y-3">
+            <div class="relative">
+                <i data-lucide="search" class="absolute right-4 top-3.5 w-5 h-5 text-gray-400"></i>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="ابحث عن معدات الصيد..." class="w-full pr-12 p-3.5 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-teal-200 focus:border-teal-400 outline-none transition text-sm font-bold">
+            </div>
+            <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-hide px-1" id="userCategoriesList"></div>
+        </section>
+
+        <!-- Products List -->
+        <section class="space-y-4 min-h-[200px]">
+            <h3 class="font-bold text-lg text-gray-800 px-2 flex items-center gap-2"><i data-lucide="grid" class="w-5 h-5 text-teal-600"></i> <span id="displayProductsTitle">أحدث المعدات</span></h3>
+            <div id="loadingSpinner" class="hidden justify-center py-10"><div class="loader"></div></div>
+            <div id="productsGrid" class="grid grid-cols-2 gap-3">
+                <!-- المنتجات تظهر هنا -->
+            </div>
+        </section>
+
+        <!-- Cart Panel -->
+        <section id="cartPanel" class="hidden bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden ring-2 ring-teal-500 mb-6 transition-all fade-in-up">
+            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5 text-teal-600"></i> الطلب الخاص بك</h3>
+                <div class="flex items-center gap-2">
+                    <span id="cartCountHeader" class="bg-teal-600 text-white text-xs font-bold px-3 py-1 rounded-full">0</span>
+                    <button onclick="clearCart()" class="text-red-500 hover:bg-red-50 p-1.5 rounded-full transition text-xs font-bold border border-red-100 px-2">إفراغ الكل</button>
+                </div>
+            </div>
+            <div id="cartItems" class="p-4 space-y-3 max-h-60 overflow-y-auto scrollbar-thin"></div>
+            <div class="bg-gray-50 p-4 border-t space-y-4">
+                <div class="flex justify-between items-center text-lg px-2"><span class="text-gray-600 font-bold">الإجمالي:</span><span class="text-teal-700 font-extrabold text-2xl"><span id="cartTotal">0</span> <span class="text-sm">ج.م</span></span></div>
+                <button onclick="sendWhatsApp()" class="w-full bg-[#25D366] text-white py-3.5 px-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 hover:bg-[#20bd5a]"><i data-lucide="send" class="w-5 h-5"></i> إرسال الطلب عبر واتساب</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Cart Button -->
+    <div id="floatingCart" class="hidden fixed bottom-6 left-6 z-30 md:hidden">
+        <button onclick="toggleCart(); window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })" class="bg-teal-600 text-white p-4 rounded-full shadow-2xl flex items-center gap-2 animate-bounce border-4 border-white"><i data-lucide="shopping-cart" class="w-6 h-6"></i><span class="font-bold"><span id="floatingTotal">0</span> ج</span></button>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden fade-in-up">
+            <div class="bg-gradient-to-l from-teal-500 to-cyan-700 p-6 text-white text-center relative">
+                <button onclick="toggleModal('contactModal')" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 p-1 rounded-full text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <h3 class="text-xl font-bold">تواصل معنا</h3>
+            </div>
+            <div id="socialLinksContainer" class="p-6 grid grid-cols-1 gap-3 text-center">
+                <a id="btnPhone" href="#" class="bg-gray-100 text-gray-800 p-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200"><i data-lucide="phone" class="w-5 h-5 text-teal-600"></i> اتصال هاتفي</a>
+                <a id="btnWhatsapp" href="#" class="bg-green-50 text-green-700 p-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-100"><i data-lucide="message-circle" class="w-5 h-5 text-green-500"></i> واتساب</a>
+                <a id="btnFacebook" href="#" class="bg-teal-50 text-teal-700 p-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-100"><i data-lucide="facebook" class="w-5 h-5 text-teal-600"></i> فيسبوك</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Info Modal -->
+    <div id="infoModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden fade-in-up">
+            <div class="bg-gray-50 p-4 flex justify-between items-center border-b">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="info" class="w-5 h-5 text-teal-600"></i> تفاصيل المنتج</h3>
+                <button onclick="closeInfoModal()" class="bg-white p-1 rounded-full text-gray-400 hover:text-red-500 shadow-sm border"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5">
+                <img id="infoModalImage" src="" class="w-full h-40 object-cover rounded-xl mb-4 bg-gray-100 shadow-sm">
+                <h4 id="infoModalName" class="font-bold text-lg text-gray-900 mb-2"></h4>
+                <p id="infoModalDesc" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meter Modal -->
+    <div id="meterModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xs overflow-hidden fade-in-up p-6 text-center">
+            <h3 class="font-bold text-lg mb-2">أدخل الكمية المطلوبة</h3>
+            <p id="meterProductName" class="text-sm text-gray-500 mb-5"></p>
+            <div class="flex items-center justify-center gap-3 mb-6" dir="ltr">
+                <span class="text-gray-500 font-bold">متر</span>
+                <input type="number" id="meterInputValue" min="0.5" step="0.5" class="w-24 text-center p-3 border-2 rounded-xl focus:border-teal-500 outline-none text-xl font-bold" value="1">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="confirmMeterAdd()" class="flex-1 bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 active:scale-95 transition">إضافة للسلة</button>
+                <button onclick="closeMeterModal()" class="px-5 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col overflow-hidden relative fade-in-up">
+            <div class="bg-gray-50 p-4 flex justify-between items-center border-b shrink-0 rounded-t-3xl">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="lock" class="w-5 h-5 text-gray-500"></i> دخول المسؤول</h3>
+                <button onclick="toggleModal('adminModal')" class="bg-white p-1 rounded-full text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="overflow-y-auto p-5 scrollbar-hide">
+                <div id="loginForm" class="space-y-6 py-4">
+                    <input type="password" id="pinInput" class="w-full text-center text-3xl tracking-[0.5em] p-4 border-2 rounded-2xl outline-none focus:border-teal-500 transition" placeholder="••••">
+                    <button onclick="handleLogin()" class="w-full bg-teal-600 text-white py-3.5 rounded-xl font-bold hover:bg-teal-700 shadow-lg active:scale-95 transition">دخول</button>
+                </div>
+                <div id="adminDashboard" class="hidden space-y-6">
+                    <!-- Stats -->
+                    <div class="bg-gradient-to-r from-teal-600 to-cyan-800 rounded-xl p-4 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-2"><h4 class="font-bold flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-5 h-5"></i> الزوار (محلي)</h4></div>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div class="bg-white/20 p-2 rounded-lg text-center"><span class="block text-xs opacity-75">اليوم</span><span id="todayVisits" class="text-2xl font-bold">0</span></div>
+                            <div class="bg-white/20 p-2 rounded-lg text-center"><span class="block text-xs opacity-75">الإجمالي</span><span id="totalVisits" class="text-2xl font-bold">0</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Form -->
+                    <div class="space-y-3 bg-gray-50 p-3 rounded-xl border">
+                        <h4 id="formHeader" class="font-bold text-sm text-gray-700 border-b pb-2 mb-2 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-green-600"></i> إضافة منتج سحابي</h4>
+                        <div class="flex justify-center mb-2">
+                             <div class="relative w-full h-32 bg-white border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-teal-500 transition group" onclick="document.getElementById('prodImageInput').click()">
+                                <img id="prodImagePreview" class="absolute inset-0 w-full h-full object-cover hidden">
+                                <div id="prodImagePlaceholder" class="text-center text-xs text-gray-400 group-hover:text-teal-500 transition relative z-10 bg-white/80 px-2 py-1 rounded">
+                                    <i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-1 opacity-50"></i>
+                                    <span id="uploadText">اضغط لاختيار صورة</span>
+                                </div>
+                                <input type="file" id="prodImageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                            </div>
+                        </div>
+                        <input type="hidden" id="editProdId">
+                        
+                        <input type="text" id="prodName" placeholder="اسم المنتج (مثال: سنارة، ماكينة صيد)" class="w-full p-3 text-sm border rounded-xl focus:ring-2 focus:ring-teal-200 outline-none">
+                        
+                        <select id="prodCategory" class="w-full p-3 text-sm border rounded-xl focus:ring-2 focus:ring-teal-200 outline-none text-gray-600">
+                        </select>
+
+                        <textarea id="prodDesc" placeholder="تفاصيل ومعلومات أكثر عن المنتج (اختياري)" class="w-full p-3 text-sm border rounded-xl focus:ring-2 focus:ring-teal-200 outline-none resize-none scrollbar-thin" rows="2"></textarea>
+                        
+                        <input type="number" id="prodPrice" placeholder="السعر بالجنيه" class="w-full p-3 text-sm border rounded-xl focus:ring-2 focus:ring-teal-200 outline-none">
+                        
+                        <div class="flex items-center gap-2 px-1">
+                            <input type="checkbox" id="prodIsMetered" class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500">
+                            <label for="prodIsMetered" class="text-sm text-gray-700 font-bold cursor-pointer select-none">هذا المنتج يباع بالمتر (كالخيوط)</label>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="saveProduct()" id="saveBtn" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-sm font-bold shadow hover:bg-green-700 active:scale-95 transition flex justify-center items-center gap-2"><i data-lucide="cloud-upload" class="w-4 h-4"></i> حفظ ورفع</button>
+                            <button onclick="resetForm()" id="cancelBtn" class="hidden px-4 bg-white border border-red-200 rounded-xl text-red-500 font-bold hover:bg-red-50">إلغاء</button>
+                        </div>
+                    </div>
+
+                    <!-- Manage Products -->
+                    <div class="space-y-3 bg-gray-50 p-3 rounded-xl border">
+                        <h4 class="font-bold text-sm text-gray-700 border-b pb-2 mb-2 flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-teal-600"></i> إدارة المنتجات المرفوعة</h4>
+                        <div id="adminProductsList" class="space-y-2 max-h-40 overflow-y-auto scrollbar-thin pr-1"></div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="space-y-3 bg-gray-50 p-3 rounded-xl border">
+                        <h4 class="font-bold text-sm text-gray-700 border-b pb-2 mb-2 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4 text-gray-500"></i> الإعدادات السحابية</h4>
+                        
+                        <!-- إدارة الأقسام -->
+                        <div class="bg-white p-2 rounded border space-y-2">
+                            <h5 class="text-xs font-bold text-gray-500">إدارة الأقسام (تصنيفات المنتجات)</h5>
+                            <div class="flex gap-2">
+                                <input type="text" id="newCategoryName" placeholder="أضف قسم جديد (مثال: طعوم)" class="w-full p-2 text-sm border rounded-lg">
+                                <button onclick="addCategory()" class="bg-teal-600 text-white px-3 py-2 rounded-lg text-sm font-bold shadow hover:bg-teal-700 transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                            <div id="adminCategoriesList" class="flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+
+                        <!-- هوية المتجر -->
+                        <div class="bg-white p-2 rounded border space-y-2">
+                            <h5 class="text-xs font-bold text-gray-500">هوية المتجر والنصوص</h5>
+                            <input id="settingStoreName" type="text" placeholder="اسم المتجر" class="w-full p-2 text-sm border rounded-lg">
+                            <input id="settingStoreDesc" type="text" placeholder="الوصف أسفل الاسم" class="w-full p-2 text-sm border rounded-lg">
+                            <input id="settingProductsTitle" type="text" placeholder="عنوان قسم المنتجات" class="w-full p-2 text-sm border rounded-lg">
+                            
+                            <div class="flex items-center gap-2 mt-2">
+                                <button onclick="document.getElementById('settingLogoInput').click()" class="bg-gray-50 border text-gray-700 px-3 py-2 rounded-lg text-xs font-bold flex-1 flex items-center justify-center gap-1 hover:bg-gray-100 transition"><i data-lucide="image" class="w-4 h-4"></i> الصورة الرئيسية</button>
+                                <input type="file" id="settingLogoInput" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                                <img id="settingLogoPreview" class="w-8 h-8 rounded-lg object-cover hidden border bg-gray-100">
+                                <button onclick="clearStoreLogo()" id="clearLogoBtn" class="hidden bg-red-50 text-red-500 p-2 rounded-lg border hover:bg-red-100 transition"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mt-2">
+                                <button onclick="document.getElementById('settingHeaderLogoInput').click()" class="bg-teal-50 border text-teal-700 px-3 py-2 rounded-lg text-xs font-bold flex-1 flex items-center justify-center gap-1 hover:bg-teal-100 transition"><i data-lucide="anchor" class="w-4 h-4"></i> لوجو الشريط العلوي</button>
+                                <input type="file" id="settingHeaderLogoInput" accept="image/*" class="hidden" onchange="handleHeaderLogoUpload(event)">
+                                <img id="settingHeaderLogoPreview" class="w-8 h-8 rounded-lg object-cover hidden border bg-gray-100">
+                                <button onclick="clearHeaderLogo()" id="clearHeaderLogoBtn" class="hidden bg-red-50 text-red-500 p-2 rounded-lg border hover:bg-red-100 transition"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- عرض اليوم -->
+                        <div class="bg-white p-2 rounded border space-y-2">
+                            <h5 class="text-xs font-bold text-gray-500">عرض اليوم للعملاء</h5>
+                            <div class="flex items-center gap-2 px-1">
+                                <input type="checkbox" id="settingDealActive" class="w-4 h-4 text-teal-600 rounded">
+                                <label for="settingDealActive" class="text-sm font-bold text-gray-700 cursor-pointer select-none">تفعيل وإظهار العرض</label>
+                            </div>
+                            <input id="settingDealTitle" type="text" placeholder="عنوان العرض (مثال: خصم 20%)" class="w-full p-2 text-sm border rounded-lg">
+                            <input id="settingDealDesc" type="text" placeholder="وصف العرض (مثال: لفترة محدودة)" class="w-full p-2 text-sm border rounded-lg">
+                        </div>
+
+                        <!-- أرقام التواصل والحماية -->
+                        <div class="bg-white p-2 rounded border space-y-2">
+                            <h5 class="text-xs font-bold text-gray-500">التواصل والحماية</h5>
+                            <div class="relative"><i data-lucide="message-circle" class="absolute right-3 top-3 w-4 h-4 text-gray-400"></i><input id="linkWhatsapp" type="text" placeholder="رقم واتساب (مع كود الدولة)" class="w-full pr-10 p-2 text-sm border rounded-lg text-left" dir="ltr"></div>
+                            <div class="relative"><i data-lucide="phone" class="absolute right-3 top-3 w-4 h-4 text-gray-400"></i><input id="linkPhone" type="text" placeholder="رقم الهاتف" class="w-full pr-10 p-2 text-sm border rounded-lg text-left" dir="ltr"></div>
+                            <div class="relative"><i data-lucide="facebook" class="absolute right-3 top-3 w-4 h-4 text-gray-400"></i><input id="linkFacebook" type="text" placeholder="رابط فيسبوك" class="w-full pr-10 p-2 text-sm border rounded-lg text-left" dir="ltr"></div>
+                            <div class="relative"><i data-lucide="lock" class="absolute right-3 top-3 w-4 h-4 text-gray-400"></i><input id="adminPinSetting" type="text" placeholder="الرقم السري للإدارة" class="w-full pr-10 p-2 text-sm border rounded-lg text-left" dir="ltr"></div>
+                        </div>
+
+                        <button onclick="saveSettings()" class="w-full bg-gray-800 text-white py-3 rounded-xl text-sm font-bold shadow hover:bg-gray-900 active:scale-95 transition mt-2 flex justify-center items-center gap-2"><i data-lucide="cloud-upload" class="w-4 h-4"></i> رفع وحفظ الإعدادات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- إعدادات فايربيز (Firebase) ---
+        let isCanvasEnvironment = typeof __firebase_config !== 'undefined';
+        let firebaseConfig;
+        let appId;
+
+        if (isCanvasEnvironment) {
+            firebaseConfig = JSON.parse(__firebase_config);
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        } else {
+            // إعدادات مشروعك الحقيقية
+            firebaseConfig = {
+                apiKey: "AIzaSyBQP7C5lkXBX490coZuAlvYkxhwBbIiS5Y",
+                authDomain: "emad-fishing.firebaseapp.com",
+                projectId: "emad-fishing",
+                storageBucket: "emad-fishing.firebasestorage.app",
+                messagingSenderId: "585436945734",
+                appId: "1:585436945734:web:487ad39235e96508315947",
+                measurementId: "G-0CQGS9K3HE"
+            };
+            appId = "emad-fishing"; 
+        }
+
+        let app, auth, db;
+        let isOnline = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            isOnline = true;
+        } catch(e) {
+            console.error("لم يتم العثور على إعدادات فايربيز صحيحة، سيعمل المتجر محلياً.");
+        }
+
+        // --- Store State ---
+        const STORE_PREFIX = 'elomda_fishing_cart_';
+        let products = JSON.parse(localStorage.getItem(STORE_PREFIX + 'products')) || [];
+        let cart = JSON.parse(localStorage.getItem(STORE_PREFIX + 'cart')) || [];
+        let settings = JSON.parse(localStorage.getItem(STORE_PREFIX + 'settings')) || { 
+            whatsapp: '', phone: '', facebook: '', pin: '1111',
+            storeName: 'العمدة لأدوات الصيد', storeDesc: 'وجهتك الأولى لاحتراف صيد الأسماك',
+            productsTitle: 'أحدث المعدات', storeLogo: '', headerLogo: '',
+            dealActive: false, dealTitle: 'خصم خاص', dealDesc: 'اكتشف عروضنا الآن',
+            categories: ['سنارات صيد', 'ماكينات صيد', 'طعوم صناعية', 'خيوط وأكسسوارات']
+        };
+        
+        let tempBase64Image = '';
+        let tempLogoBase64 = '';
+        let tempHeaderLogoBase64 = '';
+        let pendingMeterProductId = null;
+        let currentSearchQuery = '';
+        let currentCategory = '';
+
+        const getProductsColRef = () => isCanvasEnvironment ? collection(db, 'artifacts', appId, 'public', 'data', 'store_products') : collection(db, 'store_products');
+        const getSettingsDocRef = () => isCanvasEnvironment ? doc(db, 'artifacts', appId, 'public', 'data', 'store_settings', 'main') : doc(db, 'store_settings', 'main');
+
+        // --- Init Function ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                setTimeout(() => splash.remove(), 600);
+            }, 3000);
+
+            lucide.createIcons();
+            
+            // نعرض المنتجات المحلية فوراً لكي لا يظهر (جاري التحميل) للمستخدم
+            renderUserCategories();
+            renderProducts();
+            updateCartUI();
+            applySettings();
+            updateVisits();
+            
+            // Authentication & Sync
+            if (isOnline) {
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch(e) { console.error("Auth error", e); }
+                };
+                
+                initAuth();
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        onSnapshot(getSettingsDocRef(), (docSnap) => {
+                            if(docSnap.exists()) {
+                                settings = docSnap.data();
+                                localStorage.setItem(STORE_PREFIX + 'settings', JSON.stringify(settings));
+                                applySettings();
+                                populateProductFormCategories();
+                                renderAdminCategories();
+                                renderUserCategories();
+                            }
+                        }, (e) => console.error("Firestore Settings Error", e));
+
+                        onSnapshot(getProductsColRef(), (snapshot) => {
+                            products = [];
+                            snapshot.forEach((docSnap) => {
+                                products.push({ id: docSnap.id, ...docSnap.data() });
+                            });
+                            localStorage.setItem(STORE_PREFIX + 'products', JSON.stringify(products));
+                            renderProducts();
+                            renderAdminProducts();
+                        }, (e) => {
+                            console.error("Firestore Products Error", e);
+                            isOnline = false; // فشل الاتصال بقاعدة البيانات، نكتفي بالمحلي
+                        });
+                    }
+                });
+            }
+        });
+
+        // --- Functions Attached to Window ---
+        
+        window.showToast = function(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.toggleModal = function(id) {
+            const modal = document.getElementById(id);
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+                if (id === 'adminModal') {
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    document.getElementById('adminDashboard').classList.add('hidden');
+                    document.getElementById('pinInput').value = '';
+                }
+            }
+        }
+
+        function updateVisits() {
+            let total = parseInt(localStorage.getItem(STORE_PREFIX + 'total_visits') || '0');
+            let today = parseInt(localStorage.getItem(STORE_PREFIX + 'today_visits') || '0');
+            let lastVisitDate = localStorage.getItem(STORE_PREFIX + 'last_visit_date');
+            let currentDate = new Date().toDateString();
+
+            total++;
+            if (lastVisitDate !== currentDate) { today = 1; localStorage.setItem(STORE_PREFIX + 'last_visit_date', currentDate); } else { today++; }
+            localStorage.setItem(STORE_PREFIX + 'total_visits', total);
+            localStorage.setItem(STORE_PREFIX + 'today_visits', today);
+            
+            const elToday = document.getElementById('todayVisits');
+            const elTotal = document.getElementById('totalVisits');
+            if(elToday) elToday.innerText = today;
+            if(elTotal) elTotal.innerText = total;
+        }
+
+        window.setCategory = function(cat) { currentCategory = cat; renderUserCategories(); renderProducts(); }
+        window.handleSearch = function() { currentSearchQuery = document.getElementById('searchInput').value.toLowerCase(); renderProducts(); }
+
+        function renderUserCategories() {
+            const list = document.getElementById('userCategoriesList');
+            if(!list) return;
+            list.innerHTML = `<button onclick="setCategory('')" class="${currentCategory === '' ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200'} px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition transform active:scale-95"><i data-lucide="layers" class="w-4 h-4 inline-block mr-1"></i> الكل</button>`;
+            if(settings.categories) {
+                settings.categories.forEach(cat => {
+                    list.innerHTML += `<button onclick="setCategory('${cat}')" class="${currentCategory === cat ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200'} px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition transform active:scale-95">${cat}</button>`;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            const filteredProducts = products.filter(p => {
+                const matchesCategory = currentCategory === '' || p.category === currentCategory;
+                const matchesSearch = p.name.toLowerCase().includes(currentSearchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            if(filteredProducts.length === 0) {
+                grid.innerHTML = '<div class="col-span-2 text-center text-gray-400 py-10 flex flex-col items-center"><i data-lucide="search-x" class="w-10 h-10 mb-2 opacity-50"></i><p>لا توجد معدات مطابقة</p></div>';
+                lucide.createIcons();
+                return;
+            }
+
+            filteredProducts.forEach(p => {
+                const infoBtn = p.desc && p.desc.trim() !== '' ? `<button onclick="showProductInfo('${p.id}')" class="absolute top-2 right-2 bg-white/90 backdrop-blur text-teal-600 px-2 py-1.5 rounded-lg shadow text-[10px] font-bold flex items-center gap-1 hover:bg-teal-50 transition border border-teal-100"><i data-lucide="info" class="w-3 h-3"></i> معلومات أكثر</button>` : '';
+                const catTag = p.category ? `<span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full absolute bottom-2 left-2 shadow-sm border border-gray-200">${p.category}</span>` : '';
+
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative group">
+                        <div class="h-32 bg-gray-100 relative overflow-hidden">
+                            <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" alt="${p.name}" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
+                            ${infoBtn}${catTag}
+                        </div>
+                        <div class="p-3">
+                            <h4 class="font-bold text-sm text-gray-800 line-clamp-1 mb-1" title="${p.name}">${p.name}</h4>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="font-bold text-teal-600">${p.price} ج${p.isMetered ? '<span class="text-xs text-gray-500">/متر</span>' : ''}</span>
+                                <button onclick="addToCart('${p.id}')" class="bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white p-2 rounded-xl transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        window.showProductInfo = function(id) {
+            const product = products.find(p => p.id === id.toString());
+            if (!product) return;
+            document.getElementById('infoModalImage').src = product.image;
+            document.getElementById('infoModalName').innerText = product.name;
+            document.getElementById('infoModalDesc').innerText = product.desc || 'لا توجد تفاصيل إضافية.';
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        window.closeInfoModal = function() { document.getElementById('infoModal').classList.add('hidden'); }
+
+        window.toggleCart = function() {
+            const panel = document.getElementById('cartPanel');
+            panel.classList.toggle('hidden');
+            if(!panel.classList.contains('hidden')) panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addToCart = function(id) {
+            const product = products.find(p => p.id === id.toString());
+            if (!product) return;
+            if (product.isMetered) {
+                pendingMeterProductId = id.toString();
+                document.getElementById('meterProductName').innerText = product.name;
+                document.getElementById('meterInputValue').value = 1;
+                document.getElementById('meterModal').classList.remove('hidden');
+                return;
+            }
+            const existing = cart.find(item => item.id === id.toString());
+            if (existing) existing.qty++; else cart.push({ ...product, qty: 1 });
+            saveCart(); window.showToast('تمت الإضافة للسلة');
+        }
+
+        window.confirmMeterAdd = function() {
+            const val = parseFloat(document.getElementById('meterInputValue').value);
+            if (isNaN(val) || val <= 0) { window.showToast('يرجى إدخال كمية صحيحة'); return; }
+            const product = products.find(p => p.id === pendingMeterProductId);
+            if (!product) return;
+            const existing = cart.find(item => item.id === pendingMeterProductId);
+            if (existing) existing.qty += val; else cart.push({ ...product, qty: val });
+            saveCart(); window.showToast('تمت الإضافة للسلة'); window.closeMeterModal();
+        }
+
+        window.closeMeterModal = function() { document.getElementById('meterModal').classList.add('hidden'); pendingMeterProductId = null; }
+
+        window.updateCartQty = function(id, delta) {
+            const item = cart.find(i => i.id === id.toString());
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) cart = cart.filter(i => i.id !== id.toString());
+            saveCart();
+        }
+
+        window.removeFromCart = function(id) { cart = cart.filter(i => i.id !== id.toString()); saveCart(); }
+        window.clearCart = function() { cart = []; saveCart(); }
+
+        function saveCart() { localStorage.setItem(STORE_PREFIX + 'cart', JSON.stringify(cart)); updateCartUI(); }
+
+        function updateCartUI() {
+            const container = document.getElementById('cartItems');
+            const countBadge = document.getElementById('cartBadge');
+            const countHeader = document.getElementById('cartCountHeader');
+            const totalEl = document.getElementById('cartTotal');
+            const floatTotal = document.getElementById('floatingTotal');
+            const floatingCart = document.getElementById('floatingCart');
+
+            if(!container) return;
+            container.innerHTML = '';
+            let total = 0, count = 0;
+
+            cart.forEach(item => {
+                total += item.price * item.qty; count += item.qty;
+                container.innerHTML += `
+                    <div class="flex gap-3 bg-white p-2 rounded-xl border items-center">
+                        <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover bg-gray-50">
+                        <div class="flex-1">
+                            <h5 class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</h5>
+                            <span class="text-teal-600 font-bold text-sm">${item.price * item.qty} ج</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border">
+                            <button onclick="updateCartQty('${item.id}', ${item.isMetered ? 0.5 : 1})" class="w-6 h-6 bg-white rounded flex items-center justify-center text-gray-600 shadow-sm hover:text-teal-600">+</button>
+                            <span class="text-sm font-bold w-8 text-center">${item.qty}${item.isMetered ? '<span class="text-[10px] text-gray-400">م</span>' : ''}</span>
+                            <button onclick="updateCartQty('${item.id}', ${item.isMetered ? -0.5 : -1})" class="w-6 h-6 bg-white rounded flex items-center justify-center text-gray-600 shadow-sm hover:text-red-600">-</button>
+                        </div>
+                        <button onclick="removeFromCart('${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>`;
+            });
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-4 text-sm">السلة فارغة</p>';
+                floatingCart.classList.add('hidden'); countBadge.classList.add('hidden');
+            } else {
+                floatingCart.classList.remove('hidden'); countBadge.classList.remove('hidden'); countBadge.innerText = count;
+            }
+            countHeader.innerText = count; totalEl.innerText = total; floatTotal.innerText = total;
+            lucide.createIcons();
+        }
+
+        window.sendWhatsApp = function() {
+            if (cart.length === 0) { window.showToast('السلة فارغة'); return; }
+            let text = "✅🔔 مرحباً، أود طلب المعدات التالية:\n\n";
+            let total = 0;
+            cart.forEach(item => {
+                const unit = item.isMetered ? 'متر' : 'قطعة';
+                text += `- ${item.name} (الكمية: ${item.qty} ${unit}) = ${item.price * item.qty} ج\n`;
+                total += item.price * item.qty;
+            });
+            text += `\nالإجمالي: ${total} ج.م\n`;
+            const phone = settings.whatsapp ? settings.whatsapp.replace(/[^0-9]/g, '') : '';
+            if(!phone) { window.showToast('رقم الواتساب غير متوفر حالياً'); return; }
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+            window.clearCart();
+        }
+
+        // --- Admin Logic ---
+        let adminClicks = 0, adminTimer;
+        window.handleAdminTrigger = function() {
+            adminClicks++;
+            if(adminClicks === 1) adminTimer = setTimeout(() => { adminClicks = 0; }, 1000);
+            else if(adminClicks === 3) { clearTimeout(adminTimer); adminClicks = 0; window.toggleModal('adminModal'); }
+        }
+
+        window.handleLogin = function() {
+            const pin = document.getElementById('pinInput').value;
+            if (pin === (settings.pin || '1111')) {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                
+                populateProductFormCategories(); 
+                renderAdminProducts(); 
+                renderAdminCategories();
+                
+                document.getElementById('linkWhatsapp').value = settings.whatsapp || '';
+                document.getElementById('linkPhone').value = settings.phone || '';
+                document.getElementById('linkFacebook').value = settings.facebook || '';
+                document.getElementById('adminPinSetting').value = settings.pin || '1111';
+                
+                document.getElementById('settingStoreName').value = settings.storeName || '';
+                document.getElementById('settingStoreDesc').value = settings.storeDesc || '';
+                document.getElementById('settingProductsTitle').value = settings.productsTitle || '';
+                document.getElementById('settingDealActive').checked = settings.dealActive || false;
+                document.getElementById('settingDealTitle').value = settings.dealTitle || '';
+                document.getElementById('settingDealDesc').value = settings.dealDesc || '';
+                
+                tempLogoBase64 = settings.storeLogo || '';
+                if(tempLogoBase64) {
+                    document.getElementById('settingLogoPreview').src = tempLogoBase64;
+                    document.getElementById('settingLogoPreview').classList.remove('hidden');
+                    document.getElementById('clearLogoBtn').classList.remove('hidden');
+                } else {
+                    document.getElementById('settingLogoPreview').classList.add('hidden');
+                    document.getElementById('clearLogoBtn').classList.add('hidden');
+                }
+
+                tempHeaderLogoBase64 = settings.headerLogo || '';
+                if(tempHeaderLogoBase64) {
+                    document.getElementById('settingHeaderLogoPreview').src = tempHeaderLogoBase64;
+                    document.getElementById('settingHeaderLogoPreview').classList.remove('hidden');
+                    document.getElementById('clearHeaderLogoBtn').classList.remove('hidden');
+                } else {
+                    document.getElementById('settingHeaderLogoPreview').classList.add('hidden');
+                    document.getElementById('clearHeaderLogoBtn').classList.add('hidden');
+                }
+                lucide.createIcons();
+            } else { window.showToast('كلمة المرور خاطئة'); }
+        }
+
+        function populateProductFormCategories() {
+            const select = document.getElementById('prodCategory');
+            if(!select) return;
+            select.innerHTML = '<option value="">بدون قسم (عام)</option>';
+            if(settings.categories) {
+                settings.categories.forEach(cat => { select.innerHTML += `<option value="${cat}">${cat}</option>`; });
+            }
+        }
+
+        function renderAdminCategories() {
+            const list = document.getElementById('adminCategoriesList'); 
+            if(!list) return;
+            list.innerHTML = '';
+            if(!settings.categories || settings.categories.length === 0) { list.innerHTML = '<p class="text-xs text-gray-400 w-full text-center">لا توجد أقسام مضافة</p>'; return; }
+            settings.categories.forEach((cat, index) => {
+                list.innerHTML += `<div class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 border">${cat}<button onclick="deleteCategory(${index})" class="text-red-500 hover:text-red-700"><i data-lucide="x" class="w-3 h-3"></i></button></div>`;
+            });
+            lucide.createIcons();
+        }
+
+        window.addCategory = async function() {
+            const val = document.getElementById('newCategoryName').value.trim();
+            if(val && (!settings.categories || !settings.categories.includes(val))) {
+                if(!settings.categories) settings.categories = [];
+                settings.categories.push(val); 
+                document.getElementById('newCategoryName').value = '';
+                
+                // تحديث الشاشة فوراً
+                localStorage.setItem(STORE_PREFIX + 'settings', JSON.stringify(settings));
+                renderAdminCategories(); populateProductFormCategories(); renderUserCategories();
+                window.showToast('تم إضافة القسم');
+                
+                // محاولة الرفع السحابي
+                await updateSettingsInCloud();
+            }
+        }
+
+        window.deleteCategory = async function(index) {
+            if(confirm('هل تريد مسح هذا القسم؟')) {
+                const deletedCat = settings.categories[index]; 
+                settings.categories.splice(index, 1);
+                
+                // تحديث الشاشة والمنتجات فوراً
+                let changed = false;
+                products.forEach(p => { if(p.category === deletedCat) { p.category = ''; changed = true; } });
+                localStorage.setItem(STORE_PREFIX + 'settings', JSON.stringify(settings));
+                if(changed) localStorage.setItem(STORE_PREFIX + 'products', JSON.stringify(products));
+                if(currentCategory === deletedCat) currentCategory = ''; 
+                
+                renderAdminCategories(); populateProductFormCategories(); renderUserCategories(); renderProducts();
+                
+                // محاولة تحديث المنتجات بالسحابة
+                if(isOnline && auth.currentUser) {
+                    products.forEach(async (p) => { 
+                        if(p.category === '') { 
+                            try { await setDoc(doc(getProductsColRef(), p.id.toString()), { ...p }); } catch(e){}
+                        } 
+                    });
+                    await updateSettingsInCloud();
+                }
+            }
+        }
+
+        function renderAdminProducts() {
+            const list = document.getElementById('adminProductsList'); if(!list) return; list.innerHTML = '';
+            if(products.length === 0) { list.innerHTML = '<p class="text-xs text-center text-gray-400 py-2">لا توجد منتجات</p>'; return; }
+            products.forEach(p => {
+                const catText = p.category ? `(${p.category})` : '';
+                list.innerHTML += `
+                    <div class="flex items-center justify-between bg-white p-2 rounded border">
+                        <div class="flex items-center gap-2">
+                            <img src="${p.image}" class="w-8 h-8 object-cover rounded bg-gray-100">
+                            <div><span class="text-xs font-bold line-clamp-1 w-24" title="${p.name}">${p.name}</span><span class="text-[9px] text-gray-400">${catText}</span></div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="editProduct('${p.id}')" class="text-teal-600 bg-teal-50 hover:bg-teal-100 p-1.5 rounded"><i data-lucide="edit-3" class="w-3 h-3"></i></button>
+                            <button onclick="deleteProduct('${p.id}')" class="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        // --- Image Compression System ---
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max_dim = 800; // تصغير الأبعاد لحفظ المساحة
+                    
+                    if (width > height) {
+                        if (width > max_dim) { height *= max_dim / width; width = max_dim; }
+                    } else {
+                        if (height > max_dim) { width *= max_dim / height; height = max_dim; }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // ضغط الجودة لـ 70% للحصول على سرعة فائقة وحجم أقل من 1MB
+                    callback(canvas.toDataURL('image/jpeg', 0.7)); 
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.handleImageUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressImage(file, (compressedBase64) => {
+                    tempBase64Image = compressedBase64;
+                    document.getElementById('prodImagePreview').src = tempBase64Image;
+                    document.getElementById('prodImagePreview').classList.remove('hidden');
+                    document.getElementById('prodImagePlaceholder').classList.add('hidden');
+                });
+            }
+        }
+
+        window.handleLogoUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressImage(file, (compressedBase64) => {
+                    tempLogoBase64 = compressedBase64;
+                    document.getElementById('settingLogoPreview').src = tempLogoBase64;
+                    document.getElementById('settingLogoPreview').classList.remove('hidden');
+                    document.getElementById('clearLogoBtn').classList.remove('hidden');
+                });
+            }
+        }
+
+        window.handleHeaderLogoUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressImage(file, (compressedBase64) => {
+                    tempHeaderLogoBase64 = compressedBase64;
+                    document.getElementById('settingHeaderLogoPreview').src = tempHeaderLogoBase64;
+                    document.getElementById('settingHeaderLogoPreview').classList.remove('hidden');
+                    document.getElementById('clearHeaderLogoBtn').classList.remove('hidden');
+                });
+            }
+        }
+
+        window.saveProduct = async function() {
+            const id = document.getElementById('editProdId').value;
+            const name = document.getElementById('prodName').value;
+            const desc = document.getElementById('prodDesc').value;
+            const category = document.getElementById('prodCategory').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const isMetered = document.getElementById('prodIsMetered').checked;
+            
+            if (!name || isNaN(price)) { window.showToast('يرجى إدخال الاسم والسعر'); return; }
+
+            const productData = { 
+                name, desc, category, price, isMetered, 
+                image: tempBase64Image || 'https://via.placeholder.com/200?text=No+Image' 
+            };
+
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader w-4 h-4 border-2 border-white"></div> جاري الحفظ...';
+            btn.disabled = true;
+
+            // تحديث الشاشة محلياً فوراً (Optimistic Update)
+            let newId = id || Date.now().toString();
+            if (id) {
+                const idx = products.findIndex(p => p.id === id);
+                if (idx > -1) products[idx] = { id: id.toString(), ...productData };
+            } else {
+                products.push({ id: newId, ...productData });
+            }
+            localStorage.setItem(STORE_PREFIX + 'products', JSON.stringify(products));
+            renderProducts(); renderAdminProducts(); resetForm();
+
+            // محاولة الرفع السحابي إن أمكن
+            if(isOnline && auth.currentUser) {
+                try {
+                    await setDoc(doc(getProductsColRef(), newId), productData);
+                    window.showToast('تم الحفظ والرفع بنجاح');
+                } catch(e) {
+                    console.error(e);
+                    window.showToast('تم الحفظ في جهازك فقط (تأكد من إعدادات فايربيز)');
+                }
+            } else {
+                window.showToast('تم الحفظ محلياً بنجاح');
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        window.editProduct = function(id) {
+            const product = products.find(p => p.id === id.toString()); if (!product) return;
+            document.getElementById('editProdId').value = product.id;
+            document.getElementById('prodName').value = product.name;
+            document.getElementById('prodDesc').value = product.desc || '';
+            document.getElementById('prodCategory').value = product.category || '';
+            document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodIsMetered').checked = product.isMetered || false;
+            
+            tempBase64Image = product.image;
+            document.getElementById('prodImagePreview').src = tempBase64Image;
+            document.getElementById('prodImagePreview').classList.remove('hidden');
+            document.getElementById('prodImagePlaceholder').classList.add('hidden');
+            
+            document.getElementById('formHeader').innerHTML = '<i data-lucide="edit-3" class="w-4 h-4 text-teal-600"></i> تعديل منتج';
+            document.getElementById('cancelBtn').classList.remove('hidden'); 
+            document.getElementById('saveBtn').innerHTML = '<i data-lucide="cloud-upload" class="w-4 h-4"></i> حفظ وتحديث';
+            lucide.createIcons();
+            
+            // التمرير لأعلى لتسهيل التعديل
+            document.getElementById('adminModal').querySelector('.overflow-y-auto').scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        window.deleteProduct = async function(id) {
+            if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                // الحذف محلياً فوراً
+                products = products.filter(p => p.id !== id.toString()); 
+                localStorage.setItem(STORE_PREFIX + 'products', JSON.stringify(products));
+                cart = cart.filter(i => i.id !== id.toString()); saveCart();
+                renderProducts(); renderAdminProducts();
+                window.showToast('تم الحذف بنجاح');
+
+                // الحذف السحابي
+                if(isOnline && auth.currentUser) {
+                    try {
+                        await deleteDoc(doc(getProductsColRef(), id.toString()));
+                    } catch(e) { console.error("Error deleting cloud", e); }
+                }
+            }
+        }
+
+        window.resetForm = function() {
+            document.getElementById('editProdId').value = ''; document.getElementById('prodName').value = '';
+            document.getElementById('prodDesc').value = ''; document.getElementById('prodCategory').value = ''; 
+            document.getElementById('prodPrice').value = ''; document.getElementById('prodIsMetered').checked = false;
+            tempBase64Image = ''; document.getElementById('prodImagePreview').classList.add('hidden');
+            document.getElementById('prodImagePlaceholder').classList.remove('hidden'); document.getElementById('prodImageInput').value = '';
+            document.getElementById('formHeader').innerHTML = '<i data-lucide="plus-circle" class="w-4 h-4 text-green-600"></i> إضافة منتج سحابي';
+            document.getElementById('cancelBtn').classList.add('hidden'); 
+            document.getElementById('saveBtn').innerHTML = '<i data-lucide="cloud-upload" class="w-4 h-4"></i> حفظ ورفع';
+            lucide.createIcons();
+        }
+
+        window.clearStoreLogo = function() {
+            tempLogoBase64 = ''; document.getElementById('settingLogoPreview').src = '';
+            document.getElementById('settingLogoPreview').classList.add('hidden');
+            document.getElementById('clearLogoBtn').classList.add('hidden');
+            document.getElementById('settingLogoInput').value = '';
+        }
+
+        window.clearHeaderLogo = function() {
+            tempHeaderLogoBase64 = ''; document.getElementById('settingHeaderLogoPreview').src = '';
+            document.getElementById('settingHeaderLogoPreview').classList.add('hidden');
+            document.getElementById('clearHeaderLogoBtn').classList.add('hidden');
+            document.getElementById('settingHeaderLogoInput').value = '';
+        }
+
+        window.saveSettings = async function() {
+            settings.whatsapp = document.getElementById('linkWhatsapp').value;
+            settings.phone = document.getElementById('linkPhone').value;
+            settings.facebook = document.getElementById('linkFacebook').value;
+            settings.pin = document.getElementById('adminPinSetting').value || '1111';
+            
+            settings.storeName = document.getElementById('settingStoreName').value || 'العمدة لأدوات الصيد';
+            settings.storeDesc = document.getElementById('settingStoreDesc').value || 'وجهتك الأولى لاحتراف صيد الأسماك';
+            settings.productsTitle = document.getElementById('settingProductsTitle').value || 'أحدث المعدات';
+            
+            settings.storeLogo = tempLogoBase64;
+            settings.headerLogo = tempHeaderLogoBase64;
+            
+            settings.dealActive = document.getElementById('settingDealActive').checked;
+            settings.dealTitle = document.getElementById('settingDealTitle').value;
+            settings.dealDesc = document.getElementById('settingDealDesc').value;
+
+            // تحديث محلي فوراً
+            localStorage.setItem(STORE_PREFIX + 'settings', JSON.stringify(settings));
+            applySettings(); 
+
+            // محاولة التحديث السحابي
+            if(isOnline && auth.currentUser) {
+                try {
+                    await setDoc(getSettingsDocRef(), settings);
+                    window.showToast('تم رفع الإعدادات بنجاح للجميع');
+                } catch(e) {
+                    console.error("خطأ في رفع الإعدادات للسحابة", e);
+                    window.showToast('تم حفظ الإعدادات محلياً فقط');
+                }
+            } else {
+                window.showToast('تم حفظ الإعدادات بنجاح');
+            }
+        }
+
+        async function updateSettingsInCloud() {
+            if(!isOnline || !auth.currentUser) return;
+            try { await setDoc(getSettingsDocRef(), settings); } catch(e) {}
+        }
+
+        function applySettings() {
+            const btnPhone = document.getElementById('btnPhone');
+            const btnWhatsapp = document.getElementById('btnWhatsapp');
+            const btnFacebook = document.getElementById('btnFacebook');
+            if(btnPhone) btnPhone.href = settings.phone ? `tel:${settings.phone}` : '#';
+            if(btnWhatsapp) btnWhatsapp.href = settings.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}` : '#';
+            if(btnFacebook) btnFacebook.href = settings.facebook ? settings.facebook : '#';
+            
+            const storeName = settings.storeName || 'العمدة لأدوات الصيد';
+            const elHeaderName = document.getElementById('headerStoreName');
+            const elHeroName = document.getElementById('heroStoreName');
+            const elHeroDesc = document.getElementById('heroStoreDesc');
+            const elProductsTitle = document.getElementById('displayProductsTitle');
+            
+            if(elHeaderName) elHeaderName.innerText = storeName;
+            if(elHeroName) elHeroName.innerText = storeName;
+            if(elHeroDesc) elHeroDesc.innerText = settings.storeDesc || 'وجهتك الأولى لاحتراف صيد الأسماك';
+            if(elProductsTitle) elProductsTitle.innerText = settings.productsTitle || 'أحدث المعدات';
+            
+            const mainLogo = document.getElementById('mainLogo'), defaultLogoIcon = document.getElementById('defaultLogoIcon');
+            if(mainLogo && defaultLogoIcon) {
+                if(settings.storeLogo) { mainLogo.src = settings.storeLogo; mainLogo.classList.remove('hidden'); defaultLogoIcon.classList.add('hidden'); } 
+                else { mainLogo.src = ''; mainLogo.classList.add('hidden'); defaultLogoIcon.classList.remove('hidden'); }
+            }
+
+            const headerCustomLogo = document.getElementById('headerCustomLogo'), headerDefaultIcon = document.getElementById('headerDefaultIcon');
+            if(headerCustomLogo && headerDefaultIcon) {
+                if(settings.headerLogo) { headerCustomLogo.src = settings.headerLogo; headerCustomLogo.classList.remove('hidden'); headerDefaultIcon.classList.add('hidden'); } 
+                else { headerCustomLogo.src = ''; headerCustomLogo.classList.add('hidden'); headerDefaultIcon.classList.remove('hidden'); }
+            }
+
+            const dealSection = document.getElementById('dealSection');
+            if(dealSection) {
+                if(settings.dealActive) { dealSection.classList.remove('hidden'); document.getElementById('displayDealTitle').innerText = settings.dealTitle || 'عرض خاص'; document.getElementById('displayDealDesc').innerText = settings.dealDesc || 'لفترة محدودة'; } 
+                else { dealSection.classList.add('hidden'); }
+            }
+        }
+    </script>
+</body>
+</html>
